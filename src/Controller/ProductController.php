@@ -28,7 +28,7 @@ class ProductController extends AbstractController
     public function getProducts(ProductRepository $productRepository): JsonResponse
     {
         $productList = $productRepository->findAll();
-        $jsonProductList = $this->serializer->serialize($productList, 'json', ['nomgroupe']);
+        $jsonProductList = $this->serializer->serialize($productList, 'json', ['groups' => 'getProducts']);
 
         return $this->json(
             $jsonProductList,
@@ -39,10 +39,11 @@ class ProductController extends AbstractController
     #[Route('/{id}', name: '_one', methods:['GET'])]
     public function getProduct(Product $product): JsonResponse
     {
-        $jsonProduct = $this->serializer->serialize($product, 'json');
-        return $this->json([
-            'message' => $jsonProduct,
-        ]);
+        $jsonProduct = $this->serializer->serialize($product, 'json', ['groups' => 'getProducts']);
+        return $this->json(
+            $jsonProduct,
+            Response::HTTP_OK
+        );
         
         // return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);
     }

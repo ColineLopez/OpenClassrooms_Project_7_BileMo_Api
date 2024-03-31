@@ -21,6 +21,7 @@ class Customer
 
     #[ORM\ManyToOne(inversedBy: 'customer')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups('getProducts')]
     private ?Product $product = null;
 
     #[ORM\ManyToOne(inversedBy: 'customer')]

@@ -106,7 +106,7 @@ class PartnerController extends AbstractController
     public function getCustomerFromPartner(int $customer_id, CustomerRepository $customerRepository): JsonResponse
     {
         $customerList = $customerRepository->findBy(['id' => $customer_id]);
-        $jsonCustomer = $this->serializer->serialize($customerList, 'json', ['groups' => 'getCustomers']);
+        $jsonCustomer = $this->serializer->serialize($customerList, 'json', ['groups' => ['getCustomers', 'getProducts']]);
         return $this->json(
             $jsonCustomer,
             Response::HTTP_OK

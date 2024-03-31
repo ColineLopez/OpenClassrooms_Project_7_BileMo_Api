@@ -13,7 +13,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 
 #[Route('/api/products', name:'products')]
-// #[isGranted]
 class ProductController extends AbstractController
 {
 
@@ -23,8 +22,6 @@ class ProductController extends AbstractController
     }
 
     #[Route('', name: '', methods:['GET'])]
-    // #GROUP dans le controlleur en question
-    // #[IsGranted('ROLE_USER')]
     public function getProducts(ProductRepository $productRepository): JsonResponse
     {
         $productList = $productRepository->findAll();
@@ -32,19 +29,20 @@ class ProductController extends AbstractController
 
         return $this->json(
             $jsonProductList,
-            // $customerList,
             Response::HTTP_OK);
     }
 
     #[Route('/{id}', name: '_one', methods:['GET'])]
     public function getProduct(Product $product): JsonResponse
     {
+        // erreur si produit n'existe pas ? 
+        
         $jsonProduct = $this->serializer->serialize($product, 'json', ['groups' => 'getProducts']);
+
         return $this->json(
             $jsonProduct,
             Response::HTTP_OK
         );
         
-        // return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 }

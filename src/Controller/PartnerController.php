@@ -33,7 +33,6 @@ class PartnerController extends AbstractController
 
         return $this->json(
             $jsonPartnerList,
-            // $customerList,
             Response::HTTP_OK
         );
     }
@@ -65,7 +64,6 @@ class PartnerController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        // var_dump($data);die;
         $partner = $partnerRepository->find($id);
 
         if (!$partner) {
@@ -139,8 +137,5 @@ class PartnerController extends AbstractController
             Response::HTTP_NO_CONTENT
         );
     }
-
-
-
 
 }

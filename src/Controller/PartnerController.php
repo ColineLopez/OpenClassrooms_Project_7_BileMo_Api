@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/partners')]
 class PartnerController extends AbstractController
@@ -59,6 +60,7 @@ class PartnerController extends AbstractController
     }
 
     #[Route('/{id}/customers', name: 'customers_add', methods:['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function addCustomersListFromPartner(int $id, Request $request, PartnerRepository $partnerRepository, ProductRepository $productRepository, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -100,10 +102,11 @@ class PartnerController extends AbstractController
     }
 
     #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_one', methods:['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function getCustomerFromPartner(int $customer_id, CustomerRepository $customerRepository): JsonResponse
     {
         $customerList = $customerRepository->findBy(['id' => $customer_id]);
-        $jsonCustomer = $this->serializer->serialize($customerList, 'json', ['groups' => 'getCustomers']);
+        $jsonCustomer = $this->serializer->serialize($customerList, 'json', ['groups' => ['getCustomers', 'getProducts']]);
         return $this->json(
             $jsonCustomer,
             Response::HTTP_OK
@@ -111,6 +114,7 @@ class PartnerController extends AbstractController
     }
 
     #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_delete', methods:['DELETE'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function deleteCustomerFromPartner(int $customer_id, CustomerRepository $customerRepository, EntityManagerInterface $entityManager): JsonResponse
     {
         $customer = $customerRepository->find($customer_id);

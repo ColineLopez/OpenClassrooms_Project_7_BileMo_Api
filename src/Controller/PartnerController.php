@@ -31,8 +31,10 @@ class PartnerController extends AbstractController
         $partnerList = $partnerRepository->findAll();
         $jsonPartnerList = $this->serializer->serialize($partnerList, 'json', ['groups' => 'getPartners']);
 
-        return $this->json(
-            $jsonPartnerList,
+        return $this->json([
+            'partners' => $jsonPartnerList,
+            'link' => '/api/partners/{id}'
+        ],
             Response::HTTP_OK
         );
     }
@@ -41,8 +43,10 @@ class PartnerController extends AbstractController
     public function getPartner(Partner $partner): JsonResponse
     {
         $jsonProduct = $this->serializer->serialize($partner, 'json', ['groups' => 'getPartners']);
-        return $this->json(
-            $jsonProduct,
+        return $this->json([
+            'partner' => $jsonProduct,
+            'link' => '/api/partners/{id}/customers'
+        ],
             Response::HTTP_OK
         );
     }
@@ -52,8 +56,10 @@ class PartnerController extends AbstractController
     {
         $customerList = $customerRepository->findBy(['partner' => $id]);
         $jsonCustomer = $this->serializer->serialize($customerList, 'json', ['groups' => 'getCustomers']);
-        return $this->json(
-            $jsonCustomer,
+        return $this->json([
+            'customers' =>$jsonCustomer,
+            'link' => '/api/parnters/{id}/customers/{id}'
+        ],
             Response::HTTP_OK
         );
     }

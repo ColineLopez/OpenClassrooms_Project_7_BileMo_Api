@@ -27,8 +27,9 @@ class ProductController extends AbstractController
         $productList = $productRepository->findAll();
         $jsonProductList = $this->serializer->serialize($productList, 'json', ['groups' => 'getProducts']);
 
-        return $this->json(
-            $jsonProductList,
+        return $this->json([
+            'items' => $jsonProductList,
+            'link' => '/api/products/{id}'],
             Response::HTTP_OK);
     }
 
@@ -36,7 +37,7 @@ class ProductController extends AbstractController
     public function getProduct(Product $product): JsonResponse
     {
         // erreur si produit n'existe pas ? 
-        
+
         $jsonProduct = $this->serializer->serialize($product, 'json', ['groups' => 'getProducts']);
 
         return $this->json(

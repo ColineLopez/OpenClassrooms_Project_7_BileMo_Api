@@ -6,6 +6,7 @@ use App\Repository\PartnerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PartnerRepository::class)]
 class Partner
@@ -13,9 +14,11 @@ class Partner
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups('getPartners')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('getPartners')]
     private ?string $name = null;
 
     #[ORM\OneToMany(targetEntity: Customer::class, mappedBy: 'partner', orphanRemoval: true)]

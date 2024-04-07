@@ -8,15 +8,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\PotentialActionSerializer;
+
 
 
 #[Route('/api/products', name:'products')]
 class ProductController extends AbstractController
 {
 
-    function __construct(private readonly SerializerInterface $serializer)
+    function __construct(private readonly PotentialActionSerializer $potentialActionSerializer)
     {
         
     }
@@ -25,11 +25,12 @@ class ProductController extends AbstractController
     public function getProducts(ProductRepository $productRepository): JsonResponse
     {
         $productList = $productRepository->findAll();
-        $jsonProductList = $this->serializer->serialize($productList, 'json', ['groups' => 'getProducts']);
+        $jsonProductList = $this->potentialActionSerializer->generate($productList, 'getProducts');
 
         return $this->json([
             'items' => $jsonProductList,
-            'link' => '/api/products/{id}'],
+        ],
+            // 'link' => '/api/products/{id}'],
             Response::HTTP_OK);
     }
 
@@ -38,7 +39,7 @@ class ProductController extends AbstractController
     {
         // erreur si produit n'existe pas ? 
 
-        $jsonProduct = $this->serializer->serialize($product, 'json', ['groups' => 'getProducts']);
+        $jsonProduct = $this->potentialActionSerializer->generate($product, 'getProducts');
 
         return $this->json(
             $jsonProduct,

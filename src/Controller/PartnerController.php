@@ -8,6 +8,7 @@ use App\Entity\Customer;
 use App\Repository\PartnerRepository;
 use App\Repository\CustomerRepository;
 use App\Repository\ProductRepository;
+use App\Service\PotentialActionSerializer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/partners')]
 class PartnerController extends AbstractController
 {
-    function __construct(private readonly SerializerInterface $serializer)
+    function __construct(private readonly SerializerInterface $serializer, private readonly PotentialActionSerializer $potentialActionSerializer)
     {
         
     }
@@ -29,36 +30,39 @@ class PartnerController extends AbstractController
     public function getPartners(PartnerRepository $partnerRepository): JsonResponse
     {
         $partnerList = $partnerRepository->findAll();
-        $jsonPartnerList = $this->serializer->serialize($partnerList, 'json', ['groups' => 'getPartners']);
+        $jsonPartnerList = $this->potentialActionSerializer->generate($partnerList, 'getPartners');
 
         return $this->json([
             'partners' => $jsonPartnerList,
-            'link' => '/api/partners/{id}'
+            // 'link' => '/api/partners/{id}'
+            // 'potential_action' => $nvellefunction
         ],
             Response::HTTP_OK
         );
     }
 
     #[Route('/{id}', name: 'partners_one', methods:['GET'])]
-    public function getPartner(Partner $partner): JsonResponse
+    public function getPartner(Partner $partner, CustomerRepository $customerRepository): JsonResponse
     {
-        $jsonProduct = $this->serializer->serialize($partner, 'json', ['groups' => 'getPartners']);
-        return $this->json([
-            'partner' => $jsonProduct,
-            'link' => '/api/partners/{id}/customers'
-        ],
-            Response::HTTP_OK
-        );
-    }
+        $id = $partner ->getId();
 
-    #[Route('/{id}/customers', name: 'customers', methods:['GET'])]
-    public function getCustomersListFromPartner(int $id, CustomerRepository $customerRepository): JsonResponse
-    {
         $customerList = $customerRepository->findBy(['partner' => $id]);
-        $jsonCustomer = $this->serializer->serialize($customerList, 'json', ['groups' => 'getCustomers']);
+
+        $jsonPartner = $this->potentialActionSerializer->generate($partner, 'getPartners');
+        $jsonCustomerList = $this->potentialActionSerializer->generate($customerList, 'getCustomers');
+
+        //  Marche pas + MODIF CETTE ROUTE 
+        // if(!$partner){
+        //     return $this->json([
+        //         'message' => 'Partner not found.'
+        //     ],
+        //     Response::HTTP_NOT_FOUND);
+        // }
+        // $jsonProduct = $this->potentialActionSerializer->generate($partner, 'getPartners');
         return $this->json([
-            'customers' =>$jsonCustomer,
-            'link' => '/api/parnters/{id}/customers/{id}'
+            "partner" => $jsonPartner,
+            'customers' => $jsonCustomerList,
+            // 'link' => '/api/partners/{id}/customers'
         ],
             Response::HTTP_OK
         );
@@ -97,7 +101,8 @@ class PartnerController extends AbstractController
         $entityManager->persist($customer); 
         $entityManager->flush();
 
-        $serializedCustomer = $this->serializer->serialize($customer, 'json', ['groups' => 'getProducts']);
+        // $jsonCustomer = $this->potentialActionSerializer->generate($customer, 'getProducts');
+        $serializedCustomer = $this->serializer->serialize($customer, 'json', ['groups' => ['getCustomers', 'getProducts']]);
 
         return $this->json(
             $serializedCustomer,
@@ -109,8 +114,9 @@ class PartnerController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function getCustomerFromPartner(int $customer_id, CustomerRepository $customerRepository): JsonResponse
     {
-        $customerList = $customerRepository->findBy(['id' => $customer_id]);
-        $jsonCustomer = $this->serializer->serialize($customerList, 'json', ['groups' => ['getCustomers', 'getProducts']]);
+        // $jsonCustomer = $this->potentialActionSerializer->generate($customer, ['getCustomers', 'getProducts']);
+        $customer = $customerRepository->findBy(['id' => $customer_id]);
+        $jsonCustomer = $this->potentialActionSerializer->generate($customer, ['getCustomers', 'getProducts']);
         return $this->json(
             $jsonCustomer,
             Response::HTTP_OK

@@ -35,6 +35,10 @@ class PotentialActionSerializer
             $routeInfo = $this->router->match($uri);
             $routeName = $routeInfo['_route'];
 
+            if ('partners_one' == $routeName) {
+                $uri .= '/customers';
+            }
+
             $methods = match($routeName)  {
                 // 'partners' => ['GET'],
                 // 'partners_one' => ['GET'],

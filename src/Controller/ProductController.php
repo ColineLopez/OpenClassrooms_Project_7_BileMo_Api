@@ -10,8 +10,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\PotentialActionSerializer;
 
-
-
 #[Route('/api/products', name:'products')]
 class ProductController extends AbstractController
 {
@@ -28,7 +26,7 @@ class ProductController extends AbstractController
         $jsonProductList = $this->potentialActionSerializer->generate($productList, 'getProducts');
 
         return $this->json([
-            'items' => $jsonProductList,
+            'products' => $jsonProductList,
         ],
             // 'link' => '/api/products/{id}'],
             Response::HTTP_OK);

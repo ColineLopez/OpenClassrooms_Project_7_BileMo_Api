@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Product;
 use App\Entity\Partner;
 use App\Entity\Customer;
 use App\Repository\PartnerRepository;
@@ -44,12 +43,8 @@ class PartnerController extends AbstractController
     #[Route('/{id}', name: 'partners_one', methods:['GET'])]
     public function getPartner(Partner $partner, CustomerRepository $customerRepository): JsonResponse
     {
-        $id = $partner ->getId();
-
-        $customerList = $customerRepository->findBy(['partner' => $id]);
 
         $jsonPartner = $this->potentialActionSerializer->generate($partner, 'getPartners');
-        $jsonCustomerList = $this->potentialActionSerializer->generate($customerList, 'getCustomers');
 
         //  Marche pas + MODIF CETTE ROUTE 
         // if(!$partner){
@@ -61,6 +56,32 @@ class PartnerController extends AbstractController
         // $jsonProduct = $this->potentialActionSerializer->generate($partner, 'getPartners');
         return $this->json([
             "partner" => $jsonPartner,
+            // 'link' => '/api/partners/{id}/customers'
+        ],
+            Response::HTTP_OK
+        );
+    }
+
+    #[Route('/{id}/customers', name: 'customers', methods:['GET'])]
+    public function getCustomers(Partner $partner, CustomerRepository $customerRepository): JsonResponse
+    {
+        $id = $partner ->getId();
+
+        $customerList = $customerRepository->findBy(['partner' => $id]);
+
+        // $jsonPartner = $this->potentialActionSerializer->generate($partner, 'getPartners');
+        $jsonCustomerList = $this->potentialActionSerializer->generate($customerList, 'getCustomers');
+
+        //  Marche pas + MODIF CETTE ROUTE 
+        // if(!$partner){
+        //     return $this->json([
+        //         'message' => 'Partner not found.'
+        //     ],
+        //     Response::HTTP_NOT_FOUND);
+        // }
+        // $jsonProduct = $this->potentialActionSerializer->generate($partner, 'getPartners');
+        return $this->json([
+            // "partner" => $jsonPartner,
             'customers' => $jsonCustomerList,
             // 'link' => '/api/partners/{id}/customers'
         ],
@@ -68,20 +89,24 @@ class PartnerController extends AbstractController
         );
     }
 
+    // EST CE QU'IL VAUT MIEUX GARDER CUSTOMERS_ONE MAIS DANS CE CAS LA ON MET QUOI DANS LE LINK ?
+
     #[Route('/{id}/customers', name: 'customers_add', methods:['POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function addCustomersListFromPartner(int $id, Request $request, PartnerRepository $partnerRepository, ProductRepository $productRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function addCustomersListFromPartner(Partner $partner, Request $request, ProductRepository $productRepository, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        $partner = $partnerRepository->find($id);
+        $id = $partner ->getId();
 
-        if (!$partner) {
-            return $this->json([
-                'message' => 'Partner not found.'
-            ],
-            Response::HTTP_NOT_FOUND);
-        }
+        // $partner = $partnerRepository->find($id);
+
+        // if (!$partner) {
+        //     return $this->json([
+        //         'message' => 'Partner not found.'
+        //     ],
+        //     Response::HTTP_NOT_FOUND);
+        // }
 
         $customer = new Customer();
         $customer->setName($data['name']);
@@ -101,11 +126,13 @@ class PartnerController extends AbstractController
         $entityManager->persist($customer); 
         $entityManager->flush();
 
-        // $jsonCustomer = $this->potentialActionSerializer->generate($customer, 'getProducts');
+        // $jsonCustomer = $this->potentialActionSerializer->generate($customer,  ['getProducts', 'getCustomers']);
         $serializedCustomer = $this->serializer->serialize($customer, 'json', ['groups' => ['getCustomers', 'getProducts']]);
 
-        return $this->json(
-            $serializedCustomer,
+        return $this->json([
+            'message' => 'Customer added successfully',
+            // $serializedCustomer,
+        ],
             Response::HTTP_CREATED
         );
     }
@@ -145,7 +172,7 @@ class PartnerController extends AbstractController
         }
         
         return $this->json(
-            null, 
+            ['message' => 'Customer deleted successfully'], 
             Response::HTTP_NO_CONTENT
         );
     }

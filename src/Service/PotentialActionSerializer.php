@@ -10,8 +10,7 @@ use Symfony\Component\Routing\RouterInterface;
 
 class PotentialActionSerializer 
 {
-    function __construct(private readonly NormalizerInterface $normalizer, private RouterInterface $router
-    )
+    function __construct(private readonly NormalizerInterface $normalizer, private RouterInterface $router)
     {
         
     }
@@ -40,8 +39,6 @@ class PotentialActionSerializer
             }
 
             $methods = match($routeName)  {
-                // 'partners' => ['GET'],
-                // 'partners_one' => ['GET'],
                 'customers_one' => ['GET', 'DELETE'],
                 default => ['GET'],
             };

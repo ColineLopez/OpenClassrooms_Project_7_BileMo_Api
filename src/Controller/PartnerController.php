@@ -13,100 +13,99 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/partners')]
 class PartnerController extends AbstractController
 {
-    function __construct(private readonly SerializerInterface $serializer, private readonly PotentialActionSerializer $potentialActionSerializer)
+    private $entityManager; 
+
+    public function __construct(private readonly PotentialActionSerializer $potentialActionSerializer, EntityManagerInterface $entityManager)
     {
-        
+        $this->entityManager = $entityManager; 
     }
 
     #[Route('', name: 'partners', methods:['GET'])]
-    public function getPartners(PartnerRepository $partnerRepository): JsonResponse
+    public function getPartners(PartnerRepository $partnerRepository, Request $request): JsonResponse
     {
-        $partnerList = $partnerRepository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 3);
+
+        $offset = ($page -1) * $limit;
+
+        $partnerList = $partnerRepository->findBy(
+            [],
+            [],
+            $limit,
+            $offset,
+        );
+
         $jsonPartnerList = $this->potentialActionSerializer->generate($partnerList, 'getPartners');
 
         return $this->json([
-            'partners' => $jsonPartnerList,
-            // 'link' => '/api/partners/{id}'
-            // 'potential_action' => $nvellefunction
+            'partners' => $jsonPartnerList
         ],
             Response::HTTP_OK
         );
     }
 
     #[Route('/{id}', name: 'partners_one', methods:['GET'])]
-    public function getPartner(Partner $partner, CustomerRepository $customerRepository): JsonResponse
+    public function getPartner(Request $request): JsonResponse
     {
-
+        $id = $request->get('id');
+        $partner = $this->entityManager->getRepository(Partner::class)->find($id);
         $jsonPartner = $this->potentialActionSerializer->generate($partner, 'getPartners');
 
-        //  Marche pas + MODIF CETTE ROUTE 
-        // if(!$partner){
-        //     return $this->json([
-        //         'message' => 'Partner not found.'
-        //     ],
-        //     Response::HTTP_NOT_FOUND);
-        // }
-        // $jsonProduct = $this->potentialActionSerializer->generate($partner, 'getPartners');
         return $this->json([
             "partner" => $jsonPartner,
-            // 'link' => '/api/partners/{id}/customers'
         ],
             Response::HTTP_OK
         );
     }
 
     #[Route('/{id}/customers', name: 'customers', methods:['GET'])]
-    public function getCustomers(Partner $partner, CustomerRepository $customerRepository): JsonResponse
+    public function getCustomers(CustomerRepository $customerRepository, Request $request): JsonResponse
     {
-        $id = $partner ->getId();
 
-        $customerList = $customerRepository->findBy(['partner' => $id]);
+        $id = $request->get('id');
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 3);
 
-        // $jsonPartner = $this->potentialActionSerializer->generate($partner, 'getPartners');
+        $offset = ($page -1) * $limit;
+
+        $customerList = $customerRepository->findBy(
+            ['partner' => $id],
+            [],
+            $limit,
+            $offset,
+        );
+
         $jsonCustomerList = $this->potentialActionSerializer->generate($customerList, 'getCustomers');
 
-        //  Marche pas + MODIF CETTE ROUTE 
-        // if(!$partner){
-        //     return $this->json([
-        //         'message' => 'Partner not found.'
-        //     ],
-        //     Response::HTTP_NOT_FOUND);
-        // }
-        // $jsonProduct = $this->potentialActionSerializer->generate($partner, 'getPartners');
         return $this->json([
-            // "partner" => $jsonPartner,
             'customers' => $jsonCustomerList,
-            // 'link' => '/api/partners/{id}/customers'
         ],
             Response::HTTP_OK
         );
     }
 
-    // EST CE QU'IL VAUT MIEUX GARDER CUSTOMERS_ONE MAIS DANS CE CAS LA ON MET QUOI DANS LE LINK ?
-
     #[Route('/{id}/customers', name: 'customers_add', methods:['POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function addCustomersListFromPartner(Partner $partner, Request $request, ProductRepository $productRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function addCustomersListFromPartner(ProductRepository $productRepository, Request $request) : JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        dd($data);die;
+        $id = $request->get('id'); 
 
-        $id = $partner ->getId();
+        $partner = $this->entityManager->getRepository(Partner::class)->find($id);
 
-        // $partner = $partnerRepository->find($id);
-
-        // if (!$partner) {
-        //     return $this->json([
-        //         'message' => 'Partner not found.'
-        //     ],
-        //     Response::HTTP_NOT_FOUND);
-        // }
+        if (!$partner) {
+            return $this->json([
+                'message' => 'Partner not found.'
+            ],
+            Response::HTTP_NOT_FOUND);
+        }
 
         $customer = new Customer();
         $customer->setName($data['name']);
@@ -123,15 +122,11 @@ class PartnerController extends AbstractController
         $customer->setProduct($product);
         $customer->setPartner($partner);
 
-        $entityManager->persist($customer); 
-        $entityManager->flush();
-
-        // $jsonCustomer = $this->potentialActionSerializer->generate($customer,  ['getProducts', 'getCustomers']);
-        $serializedCustomer = $this->serializer->serialize($customer, 'json', ['groups' => ['getCustomers', 'getProducts']]);
+        $this->entityManager->persist($customer); 
+        $this->entityManager->flush();
 
         return $this->json([
             'message' => 'Customer added successfully',
-            // $serializedCustomer,
         ],
             Response::HTTP_CREATED
         );
@@ -139,10 +134,10 @@ class PartnerController extends AbstractController
 
     #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_one', methods:['GET'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function getCustomerFromPartner(int $customer_id, CustomerRepository $customerRepository): JsonResponse
+    public function getCustomerFromPartner(Request $request): JsonResponse
     {
-        // $jsonCustomer = $this->potentialActionSerializer->generate($customer, ['getCustomers', 'getProducts']);
-        $customer = $customerRepository->findBy(['id' => $customer_id]);
+        $id = $request->get('customer_id');
+        $customer = $this->entityManager->getRepository(Customer::class)->find($id);
         $jsonCustomer = $this->potentialActionSerializer->generate($customer, ['getCustomers', 'getProducts']);
         return $this->json(
             $jsonCustomer,
@@ -152,9 +147,10 @@ class PartnerController extends AbstractController
 
     #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_delete', methods:['DELETE'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function deleteCustomerFromPartner(int $customer_id, CustomerRepository $customerRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function deleteCustomerFromPartner(Request $request): JsonResponse
     {
-        $customer = $customerRepository->find($customer_id);
+        $id = $request->get('customer_id');
+        $customer = $this->entityManager->getRepository(Customer::class)->find($id);
 
         if (!$customer) {
             return $this->json([
@@ -163,8 +159,8 @@ class PartnerController extends AbstractController
         }
 
         try {
-            $entityManager->remove($customer);
-            $entityManager->flush();
+            $this->entityManager->remove($customer);
+            $this->entityManager->flush();
         } catch (\Exception $e) {
             return $this->json([
                 'error' => 'An error occurred while deleting the customer.'

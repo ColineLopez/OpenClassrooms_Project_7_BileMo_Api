@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Partner;
 use App\Entity\Customer;
+use App\Entity\Product;
 use App\Repository\PartnerRepository;
 use App\Repository\CustomerRepository;
 use App\Repository\ProductRepository;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/partners')]
 class PartnerController extends AbstractController
@@ -92,35 +95,28 @@ class PartnerController extends AbstractController
 
     #[Route('/{id}/customers', name: 'customers_add', methods:['POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function addCustomersListFromPartner(ProductRepository $productRepository, Request $request) : JsonResponse
+    public function addCustomersListFromPartner(SerializerInterface $serializer, ProductRepository $productRepository, Request $request, ValidatorInterface $validator) : JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        dd($data);die;
+
+        $customer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
+        // var_dump($test);die;
+        // dd($data);die;
         $id = $request->get('id'); 
-
+        // var_dump($customer->getProduct()->getTitle());die;
         $partner = $this->entityManager->getRepository(Partner::class)->find($id);
-
-        if (!$partner) {
-            return $this->json([
-                'message' => 'Partner not found.'
-            ],
-            Response::HTTP_NOT_FOUND);
-        }
-
-        $customer = new Customer();
-        $customer->setName($data['name']);
-
-        $product = $productRepository->find($data['product_id']);
-
-        if (!$product) {
-            return $this->json([
-                'message' => 'Product not found.'
-            ],
-            Response::HTTP_NOT_FOUND);
-        }
+        $product = $this->entityManager->getRepository(Product::class)->findOneBy(['title' => $customer->getProduct()->getTitle()]);
 
         $customer->setProduct($product);
         $customer->setPartner($partner);
+
+        $errors = $validator->validate($customer);
+        // var_dump($errors->count());die;
+        if ($errors->count() > 0) {
+            return $this->json($errors, Response::HTTP_BAD_REQUEST);
+        }
+
+        
 
         $this->entityManager->persist($customer); 
         $this->entityManager->flush();

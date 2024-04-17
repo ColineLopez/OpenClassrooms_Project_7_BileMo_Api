@@ -1,0 +1,16 @@
+{
+    "name": "SnowTricks",
+    "short_name": "SnowTricks",
+    "description": "Le site communautaire qui présente toutes les figures de snowboard",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "/images/logo.gif",
+        "sizes": "192x192",
+        "type": "image/gif"
+      }
+    ]
+  }

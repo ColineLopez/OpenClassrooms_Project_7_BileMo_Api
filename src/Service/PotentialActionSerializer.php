@@ -5,14 +5,10 @@ namespace App\Service;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Routing\RouterInterface;
 
-
-// https://symfony.com/doc/current/serializer/custom_normalizer.html
-
 class PotentialActionSerializer 
 {
-    function __construct(private readonly NormalizerInterface $normalizer, private RouterInterface $router)
-    {
-        
+    public function __construct(private readonly NormalizerInterface $normalizer, private RouterInterface $router)
+    {   
     }
 
     public function generate(array | object $data, string | array $groups) 
@@ -47,7 +43,6 @@ class PotentialActionSerializer
             $json['potential_action'] = [
                 'url' => $uri,
                 'methods' => $methods
-                // "roles" =>
             ];
     
             $array[] = $json;

@@ -97,13 +97,8 @@ class PartnerController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function addCustomersListFromPartner(SerializerInterface $serializer, ProductRepository $productRepository, Request $request, ValidatorInterface $validator) : JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
         $customer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
-        // var_dump($test);die;
-        // dd($data);die;
         $id = $request->get('id'); 
-        // var_dump($customer->getProduct()->getTitle());die;
         $partner = $this->entityManager->getRepository(Partner::class)->find($id);
         $product = $this->entityManager->getRepository(Product::class)->findOneBy(['title' => $customer->getProduct()->getTitle()]);
 
@@ -111,12 +106,9 @@ class PartnerController extends AbstractController
         $customer->setPartner($partner);
 
         $errors = $validator->validate($customer);
-        // var_dump($errors->count());die;
         if ($errors->count() > 0) {
             return $this->json($errors, Response::HTTP_BAD_REQUEST);
         }
-
-        
 
         $this->entityManager->persist($customer); 
         $this->entityManager->flush();

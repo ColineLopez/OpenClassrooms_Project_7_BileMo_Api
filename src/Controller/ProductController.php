@@ -10,6 +10,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\PotentialActionSerializer;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Attributes as OA;
 
 #[Route('/api/products', name:'products')]
 class ProductController extends AbstractController
@@ -19,7 +22,32 @@ class ProductController extends AbstractController
     {
     }
 
+    /**
+     * List all the products.
+     */
     #[Route('', name: '', methods:['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the products\' list.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Product::class, groups: ['getProducts']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'page',
+        in: 'query',
+        description: 'The field used to select page.',
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        in: 'query',
+        description: 'The field used to select limit product through page.',
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Tag(name: 'Products')]
+    #[Security(name: 'Bearer')]
     public function getProducts(ProductRepository $productRepository, Request $request): JsonResponse
     {
         $page = $request->get('page', 1);
@@ -42,7 +70,21 @@ class ProductController extends AbstractController
             Response::HTTP_OK);
     }
 
+
+    /**
+     * Get a product's detail.
+     */
     #[Route('/{id}', name: '_one', methods:['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns one products identified by its id.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Product::class, groups: ['getProducts']))
+        )
+    )]
+    #[OA\Tag(name: 'Products')]
+    #[Security(name: 'Bearer')]
     public function getProduct(Product $product): JsonResponse
     {
 

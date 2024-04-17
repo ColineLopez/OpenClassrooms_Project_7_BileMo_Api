@@ -25,10 +25,12 @@ class Customer
     #[ORM\ManyToOne(inversedBy: 'customer')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('getProducts')]
+    #[Assert\NotNull(message: "Le produit est obligatoire. ")]
     private ?Product $product = null;
 
     #[ORM\ManyToOne(inversedBy: 'customer')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Le partner est obligatoire. ")]
     private ?Partner $partner = null;
 
     public function getId(): ?int

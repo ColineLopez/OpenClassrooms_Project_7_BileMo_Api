@@ -18,6 +18,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Attributes as OA;
 
 #[Route('/api/partners')]
 class PartnerController extends AbstractController
@@ -29,13 +32,40 @@ class PartnerController extends AbstractController
         $this->entityManager = $entityManager; 
     }
 
+
+
+    /**
+     * List all the partners.
+     */
     #[Route('', name: 'partners', methods:['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the partners\' list.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Partner::class, groups: ['getPartners']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'page',
+        in: 'query',
+        description: 'The field used to select page.',
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        in: 'query',
+        description: 'The field used to select limit product through page.',
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Tag(name: 'Partners')]
+    #[Security(name: 'Bearer')]
     public function getPartners(PartnerRepository $partnerRepository, Request $request): JsonResponse
     {
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 3);
 
-        $offset = ($page -1) * $limit;
+        $offset = ($page - 1) * $limit;
 
         $partnerList = $partnerRepository->findBy(
             [],
@@ -53,7 +83,21 @@ class PartnerController extends AbstractController
         );
     }
 
-    #[Route('/{id}', name: 'partners_one', methods:['GET'])]
+
+    /**
+     * Get a partner's detail.
+     */
+    #[Route('/{id}', name: 'partners_one', methods:['GET'])]    
+    #[OA\Response(
+        response: 200,
+        description: 'Returns one partner identified by its id.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Partner::class, groups: ['getPartners']))
+        )
+    )]
+    #[OA\Tag(name: 'Partners')]
+    #[Security(name: 'Bearer')]
     public function getPartner(Request $request): JsonResponse
     {
         $id = $request->get('id');
@@ -67,7 +111,33 @@ class PartnerController extends AbstractController
         );
     }
 
+
+    /**
+     * List all the customers from a partner.
+     */
     #[Route('/{id}/customers', name: 'customers', methods:['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the customers\' list from a partner identified by its id.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Customer::class, groups: ['getCustomers']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'page',
+        in: 'query',
+        description: 'The field used to select page.',
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        in: 'query',
+        description: 'The field used to select limit product through page.',
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Tag(name: 'Customers')]
+    #[Security(name: 'Bearer')]
     public function getCustomers(CustomerRepository $customerRepository, Request $request): JsonResponse
     {
 
@@ -93,9 +163,33 @@ class PartnerController extends AbstractController
         );
     }
 
+
+    /**
+     * Add a customer from a partner.
+     */
     #[Route('/{id}/customers', name: 'customers_add', methods:['POST'])]
+    #[OA\Response(
+        response: 201,
+        description: 'Add a customers from a partner identified by its id.',
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Bad request. Invalid input data.',
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            type: Customer::class,
+            example: [
+                "name" => "name",
+                "product" => ["title" => "product title"]
+            ]
+        )
+    )]
+    #[OA\Tag(name: 'Customers')]
+    #[Security(name: 'Bearer')]
     #[IsGranted('ROLE_ADMIN')]
-    public function addCustomersListFromPartner(SerializerInterface $serializer, ProductRepository $productRepository, Request $request, ValidatorInterface $validator) : JsonResponse
+    public function addCustomersListFromPartner(SerializerInterface $serializer, Request $request, ValidatorInterface $validator) : JsonResponse
     {
         $customer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
         $id = $request->get('id'); 
@@ -120,7 +214,20 @@ class PartnerController extends AbstractController
         );
     }
 
-    #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_one', methods:['GET'])]
+    /**
+     * Get a customer's detail.
+     */
+    #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_one', methods:['GET'])]   
+    #[OA\Response(
+        response: 200,
+        description: 'Returns one customer identified by its id and its partner id.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Customer::class, groups: ['getCustomers', 'getProducts']))
+        )
+    )]
+    #[OA\Tag(name: 'Customers')]
+    #[Security(name: 'Bearer')]
     #[IsGranted('ROLE_ADMIN')]
     public function getCustomerFromPartner(Request $request): JsonResponse
     {
@@ -133,7 +240,16 @@ class PartnerController extends AbstractController
         );
     }
 
-    #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_delete', methods:['DELETE'])]
+    /**
+     * Delete a customer.
+     */
+    #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_delete', methods:['DELETE'])]  
+    #[OA\Response(
+        response: 404,
+        description: 'Delete a customer from a partner identified by its id and its partner id.',
+    )]
+    #[OA\Tag(name: 'Customers')]
+    #[Security(name: 'Bearer')]
     #[IsGranted('ROLE_ADMIN')]
     public function deleteCustomerFromPartner(Request $request): JsonResponse
     {

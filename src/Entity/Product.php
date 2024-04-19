@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\Since;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
@@ -27,6 +28,14 @@ class Product
 
     #[ORM\OneToMany(targetEntity: Customer::class, mappedBy: 'product', orphanRemoval: true)]
     private Collection $customer;
+
+    /**
+     * @var list<string> The product colors
+     */
+    #[ORM\Column]
+    #[Groups('getProducts')]
+    #[Since("2.0")]
+    private ?array $color = null;
 
     public function __construct()
     {
@@ -88,6 +97,18 @@ class Product
                 $customer->setProduct(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getColor(): ?array
+    {
+        return $this->color;
+    }
+
+    public function setColor(?array $color): static
+    {
+        $this->color = $color;
 
         return $this;
     }

@@ -7,7 +7,6 @@ use App\Entity\Customer;
 use App\Entity\Product;
 use App\Repository\PartnerRepository;
 use App\Repository\CustomerRepository;
-use App\Repository\ProductRepository;
 use App\Service\PotentialActionSerializer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

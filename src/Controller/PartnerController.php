@@ -245,8 +245,12 @@ class PartnerController extends AbstractController
      */
     #[Route('/{partner_id}/customers/{customer_id}', name: 'customers_delete', methods:['DELETE'])]  
     #[OA\Response(
-        response: 404,
+        response: 204,
         description: 'Delete a customer from a partner identified by its id and its partner id.',
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'An error occurred while deleting the customer.',
     )]
     #[OA\Tag(name: 'Customers')]
     #[Security(name: 'Bearer')]
@@ -272,7 +276,7 @@ class PartnerController extends AbstractController
         }
         
         return $this->json(
-            ['message' => 'Customer deleted successfully'], 
+            [''], 
             Response::HTTP_NO_CONTENT
         );
     }

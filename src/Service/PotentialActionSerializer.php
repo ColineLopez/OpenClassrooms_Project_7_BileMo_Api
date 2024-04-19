@@ -40,10 +40,13 @@ class PotentialActionSerializer
             };
     
             $json = $this->normalizer->normalize($object, null, ['groups' => $groups]);
-            $json['potential_action'] = [
-                'url' => $uri,
-                'methods' => $methods
-            ];
+            foreach($methods as $method){
+                $json['potential_action'][] = [
+                    'url' => $uri,
+                    'method' => $method
+                ];
+            }
+            
     
             $array[] = $json;
         }

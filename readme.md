@@ -54,10 +54,11 @@ You can test the API endpoints using tools like Postman or curl. Remember to inc
 
 `curl -X GET "https://api.example.com/api/products" -H "Authorization: Bearer YOUR_JWT_TOKEN"`
 
-## App Overview
+## 🖼️ App Overview
 
-## Workspace Environment
+## 🛠️ Workspace Environment
 
 ![PHP](https://img.shields.io/badge/PHP-8.1-blue)
+
 ![Symfony](https://img.shields.io/badge/Symfony-6.4-green)
 

@@ -66,5 +66,7 @@ You can test the API endpoints using tools like Postman or curl. Remember to inc
 
 ![PHP](https://img.shields.io/badge/PHP-8.1-blue)
 
+![MySQL](https://img.shields.io/badge/MySQL-8.0.31-orange)
+
 ![Symfony](https://img.shields.io/badge/Symfony-6.4-green)
 

@@ -60,6 +60,8 @@ You can test the API endpoints using tools like Postman or curl. Remember to inc
 
 ## 🖼️ App Overview
 
+![Nelmio Documentation Overview](public/images/API.png)
+
 ## 🛠️ Workspace Environment
 
 ![PHP](https://img.shields.io/badge/PHP-8.1-blue)

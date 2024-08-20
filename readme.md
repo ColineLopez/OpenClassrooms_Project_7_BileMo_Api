@@ -11,6 +11,8 @@ To access the endpoints of this API, you need to authenticate by providing your 
 1. Clone the repository
 
 `git clone https://github.com/ColineLopez/OpenClassrooms_Project_7_BileMo_Api.git`
+
+`cd OpenClassrooms_Project_7_BileMo_Api`
   
 2. Install Dependencies
 
@@ -19,6 +21,8 @@ To access the endpoints of this API, you need to authenticate by providing your 
 3. Set up your environment variables configuring it according to your environment.
 
 4. Run Migrations
+
+`php bin/console doctrine:database:create`
 
 `php bin/console doctrine:migrations:migrate`
 
